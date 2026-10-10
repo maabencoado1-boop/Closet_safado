@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Meu Closet">
+  <meta name="theme-color" content="#1a1a1f">
+  <meta name="description" content="Meu Closet — Seu guarda-roupa digital privado">
+  <title>Meu Closet</title>
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👗</text></svg>">
+  <style>
+    :root {
+      --bg: #1a1a1f;
+      --paper: #24242b;
+      --pale: #2f382f;
+      --ink: #e6e6e6;
+      --muted: #999;
+      --line: #3a3a42;
+      --green: #7ab87a;
+      --radius-sm: 10px;
+      --radius-lg: 20px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    [data-tema="claro"] {
+      --bg: #f8f8f5;
+      --paper: #ffffff;
+      --pale: #e8efe8;
+      --ink: #222;
+      --muted: #777;
+      --line: #ddd;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      transition: background 0.3s;
+      -webkit-font-smoothing: antialiased;
+    }
+    .hidden { display: none !important; }
+    button {
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    input, select {
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    body { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 240px; background: var(--paper); display: flex; flex-direction: column;
+      border-right: 1px solid var(--line); padding: 20px 12px; gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon { font-size: 22px; color: var(--green); }
+    .brand b { font-size: 15px; }
+    .brand small { font-size: 10px; color: var(--muted); display: block; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 12px 12px; border-radius: 12px;
+      background: transparent; color: var(--muted); font-size: 14px; text-align: left; transition: all 0.2s;
+    }
+    .nav-item.active, .nav-item:hover { background: var(--pale); color: var(--green); }
+    .sidebar-bottom {
+      display: flex; align-items: center; gap: 10px; padding: 12px;
+      border-top: 1px solid var(--line); margin-top: auto; cursor: pointer;
+    }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%; background: var(--pale); display: grid;
+      place-items: center; font-size: 20px; color: var(--green); overflow: hidden; flex-shrink: 0;
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .main { flex: 1; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+    .mobile-brand { display: none; font-weight: bold; font-size: 17px; }
+    .top-note { font-size: 13px; color: var(--muted); }
+    .top-perfil {
+      display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px 14px;
+      border-radius: 999px; background: transparent; border: none; transition: all 0.2s ease;
+    }
+    .top-perfil:hover { background: rgba(255,255,255,0.06); }
+    .top-avatar {
+      width: 34px; height: 34px; border-radius: 50%; background: var(--pale); display: grid;
+      place-items: center; font-size: 18px; color: var(--green); overflow: hidden; flex-shrink: 0;
+    }
+    .top-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .top-nome-estilo { display: flex; flex-direction: column; line-height: 1.2; }
+    .top-nome-estilo b { font-size: 14px; color: var(--ink); }
+    .top-nome-estilo small { font-size: 11px; color: var(--muted); }
+    .hero {
+      display: flex; align-items: center; gap: 24px; background: var(--pale);
+      border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--green); margin-bottom: 8px; }
+    .hero h1 { font-size: 28px; line-height: 1.2; margin-bottom: 16px; }
+    .hero em { color: var(--green); font-style: normal; }
+    .hero-copy { color: var(--muted); margin-bottom: 20px; max-width: 460px; font-size: 15px; }
+    .hero-art { position: relative; }
+    .hanger { font-size: 64px; color: var(--green); background: rgba(255,255,255,0.8); border-radius: 50%; padding: 16px; }
+    .art-caption { text-align: right; margin-top: 12px; font-size: 11px; color: var(--muted); }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stats > div {
+      display: flex; align-items: center; gap: 10px; background: var(--paper);
+      padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+    }
+    .stat-icon { font-size: 22px; color: var(--green); }
+    .stats b { font-size: 20px; display: block; }
+    .stats small { font-size: 11px; color: var(--muted); }
+    .section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .section-heading h2 { font-size: 20px; margin-top: 4px; }
+    .primary-btn {
+      background: var(--green); color: white; padding: 14px 20px; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;
+      border: none; transition: transform 0.1s;
+    }
+    .primary-btn:active { transform: scale(0.98); }
+    .outline-btn {
+      background: transparent; color: var(--green); border: 1px solid var(--green);
+      padding: 12px 16px; border-radius: var(--radius-sm); font-size: 14px;
+    }
+    .filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter {
+      background: transparent; color: var(--muted); padding: 10px 14px; border-radius: 999px;
+      border: 1px solid var(--line); font-size: 13px;
+    }
+    .filter.active { background: var(--pale); color: var(--green); border-color: var(--green); }
+    .piece-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .piece-card { background: var(--paper); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); transition: transform 0.2s; }
+    .piece-card:hover { transform: translateY(-2px); }
+    .piece-photo { width: 100%; height: 150px; overflow: hidden; background: var(--pale); }
+    .piece-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .piece-info { padding: 12px; }
+    .piece-info b { font-size: 14px; display: block; margin-bottom: 4px; }
+    .piece-info small { font-size: 11px; color: var(--muted); }
+    .piece-actions { margin-top: 8px; display: flex; gap: 6px; }
+    .tiny-btn { background: transparent; font-size: 16px; padding: 4px; border: none; cursor: pointer; border-radius: 6px; }
+    .tiny-btn:hover { background: var(--pale); }
+    .empty-state { text-align: center; padding: 3rem 1.5rem; display: none; }
+    .empty-state.active { display: block; }
+    .empty-icon { font-size: 48px; color: var(--green); margin-bottom: 16px; }
+    .empty-state h3 { margin-bottom: 8px; font-size: 18px; }
+    .empty-state p { color: var(--muted); margin-bottom: 24px; max-width: 360px; margin-left: auto; margin-right: auto; font-size: 15px; }
+    dialog {
+      border: none; border-radius: var(--radius-lg); background: var(--paper);
+      color: var(--ink); padding: 28px; max-width: 480px; width: 90%;
+      box-shadow: var(--shadow);
+    }
+    dialog::backdrop { background: rgba(0,0,0,0.6); }
+    .dialog-close {
+      position: absolute; top: 12px; right: 16px; background: transparent;
+      color: var(--muted); font-size: 24px; padding: 0; line-height: 1; border: none; cursor: pointer;
+    }
+    dialog h2 { margin: 8px 0 20px; font-size: 20px; }
+    dialog label { display: block; margin-bottom: 16px; font-size: 14px; font-weight: 500; }
+    dialog input, dialog select {
+      width: 100%; padding: 14px; margin-top: 6px; border-radius: var(--radius-sm);
+      border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 16px;
+    }
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .form-row label { flex: 1; min-width: 140px; }
+    .upload-zone {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      border: 2px dashed var(--line); border-radius: var(--radius-sm); padding: 24px;
+      cursor: pointer; margin-bottom: 12px; transition: border 0.2s, background 0.2s;
+    }
+    .upload-zone:hover { border-color: var(--green); background: rgba(122,184,122,0.05); }
+    .upload-zone span { font-size: 32px; color: var(--green); }
+    .upload-zone small { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .muted { color: var(--muted); margin-bottom: 20px; font-size: 13px; }
+    .full { width: 100%; justify-content: center; margin-top: 8px; }
+    .card-page { background: var(--paper); border-radius: var(--radius-lg); padding: 20px; border: 1px solid var(--line); margin-bottom: 16px; }
+    .card-page h3 { margin-bottom: 12px; font-size: 17px; }
+    .card-page p { color: var(--muted); margin-bottom: 8px; font-size: 14px; line-height: 1.5; }
+    .tag { display: inline-block; padding: 8px 14px; background: var(--pale); color: var(--green); border-radius: 999px; font-size: 13px; margin: 4px; }
+    .lista-itens { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 16px; }
+    .item-tag { background: var(--pale); padding: 14px; border-radius: 12px; text-align: center; border: 1px solid var(--line); }
+    .item-tag img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+    .item-tag h4 { font-size: 14px; margin-bottom: 2px; }
+    .item-tag p { font-size: 12px; color: var(--muted); }
+    .historico-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .historico-item:last-child { border-bottom: none; }
+    .historico-data { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .historico-acao { font-weight: 500; font-size: 14px; }
+    .resultado-ia-card { background: var(--pale); border-radius: 14px; padding: 20px; margin-top: 16px; border: 1px solid var(--line); }
+    .look-pecas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .look-peca { display: flex; align-items: center; gap: 8px; background: var(--paper); padding: 8px 12px; border-radius: 999px; font-size: 13px; }
+    .sem-resultado { text-align: center; padding: 2rem; color: var(--muted); }
+    .acao-botao { margin-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    @supports (-webkit-touch-callout: none) {
+      body { min-height: -webkit-fill-available; }
+      html { height: -webkit-fill-available; }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding-bottom: 85px;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+      }
+      .sidebar {
+        position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: auto;
+        flex-direction: row; justify-content: space-around; padding: 10px 8px;
+        background: rgba(26,26,31,0.95); backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255,255,255,0.08);
+        z-index: 999;
+      }
+      .brand, .sidebar-bottom { display: none; }
+      .sidebar nav { flex-direction: row; overflow-x: auto; gap: 0; width: 100%; justify-content: space-around; }
+      .nav-item { flex-direction: column; padding: 8px 6px; font-size: 10px; gap: 3px; white-space: nowrap; min-width: 60px; }
+      .nav-item span:first-child { font-size: 20px; }
+      .main { padding: 16px; padding-bottom: 20px; }
+      .mobile-brand { display: block; }
+      .top-note { display: none; }
+      .hero { flex-direction: column; text-align: center; gap: 20px; padding: 20px; }
+      .hero h1 { font-size: 24px; }
+      .stats { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+      .stats > div { padding: 12px 10px; }
+      .piece-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .filters { overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+      button, input, select { min-height: 50px; font-size: 16px; }
+      dialog {
+        width: 100%; height: 100%; max-width: 100%; border-radius: 20px 20px 0 0;
+        margin: auto 0 0 0;
+        padding: 24px 20px;
+      }
+      .primary-btn { width: 100%; justify-content: center; }
+      .form-row { flex-direction: column; }
+      .hanger { font-size: 56px; padding: 14px; }
+    }
+  </style>
+</head>
+<body data-tema="escuro">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-icon">✦</span>
+      <div><b>meu closet</b><small>SEU ESTILO, SUA ESSÊNCIA</small></div>
+    </div>
+    <nav id="nav">
+      <button class="nav-item active" data-tab="closet"><span>▦</span> <span>Meu closet</span></button>
+      <button class="nav-item" data-tab="estilos"><span>◈</span> <span>Estilos</span></button>
+      <button class="nav-item" data-tab="cores"><span>◉</span> <span>Cores</span></button>
+      <button class="nav-item" data-tab="sapatos"><span>♧</span> <span>Sapatos</span></button>
+      <button class="nav-item" data-tab="acessorios"><span>✧</span> <span>Acessórios</span></button>
+      <button class="nav-item" data-tab="pesquisa"><span>⌕</span> <span>Pesquisar</span></button>
+      <button class="nav-item" data-tab="historico"><span>↺</span> <span>Histórico</span></button>
+      <button class="nav-item" data-tab="ia"><span>✳</span> <span>IA Stylist</span></button>
+      <button class="nav-item" data-tab="configuracoes"><span>⚙</span> <span>Configurações</span></button>
+    </nav>
+    <div class="sidebar-bottom" onclick="abrirPerfil()">
+      <div class="avatar" id="avatar-perfil">♡</div>
+      <div><b id="nome-perfil-exibicao">Seu espaço</b><small id="estilo-perfil-exibicao">Closet personalizado</small></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="mobile-brand">✦ meu closet</div>
+      <div class="top-note">Vista-se como você se sente.</div>
+      <div class="top-perfil" onclick="abrirPerfil()">
+        <div class="top-avatar" id="top-avatar">♡</div>
+        <div class="top-nome-estilo"><b id="top-nome">Seu Nome</b><small id="top-estilo">Seu estilo</small></div>
+      </div>
+    </header>
+
+    <section class="hero" id="pagina-closet">
+      <div>
+        <p class="eyebrow">SEU GUARDA-ROUPA, REIMAGINADO</p>
+        <h1>Que bom que voltou, <em id="nome-ola">Nicolly</em>!<br>Vamos criar seu novo look?</h1>
+        <p class="hero-copy">Organize suas peças, descubra combinações e encontre um visual que seja a sua cara — sem perder a essência de cada roupa.</p>
+        <button class="primary-btn" onclick="document.querySelector('[data-tab=ia]').click()">✳ Encontrar meu look →</button>
+      </div>
+      <div class="hero-art">
+        <div class="hanger">♧</div>
+        <div class="art-caption">SEU ESTILO<br>SEM REGRAS</div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div><span class="stat-icon">▦</span><div><b id="piece-count">0</b><small>peças</small></div></div>
+      <div><span class="stat-icon">✳</span><div><b id="look-count">0</b><small>looks</small></div></div>
+      <div><span class="stat-icon">♡</span><div><b id="favorite-count">0</b><small>favoritos</small></div></div>
+    </section>
+
+    <section class="content-section" id="closet-view">
+      <div class="section-heading">
+        <div><p class="eyebrow">SUA COLEÇÃO</p><h2>Meu closet</h2></div>
+        <button class="primary-btn" id="upload-trigger">📷 Adicionar peça</button>
+      </div>
+      <div class="filters" id="category-filters">
+        <button class="filter active" data-filter="Todas">Todas</button>
+        <button class="filter" data-filter="Blusas">Blusas</button>
+        <button class="filter" data-filter="Calças">Calças</button>
+        <button class="filter" data-filter="Shorts">Shorts</button>
+        <button class="filter" data-filter="Bermudas">Bermudas</button>
+        <button class="filter" data-filter="Vestidos">Vestidos</button>
+        <button class="filter" data-filter="Casacos">Casacos</button>
+        <button class="filter" data-filter="Sapatos">Sapatos</button>
+        <button class="filter" data-filter="Acessórios">Acessórios</button>
+      </div>
+      <div class="piece-grid" id="piece-grid"></div>
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">📷</div>
+        <h3>Seu closet começa aqui</h3>
+        <p>Tire uma foto ou escolha da galeria para montar sua coleção digital.</p>
+        <button class="primary-btn" id="empty-upload">📷 Adicionar primeira peça</button>
+      </div>
+    </section>
+
+    <section class="content-section hidden" id="configuracoes-view">
+      <div class="section-heading"><div><p class="eyebrow">SEU PERFIL</p><h2>Personalize seu espaço</h2></div></div>
+      <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 32px; padding: 20px; background: var(--paper); border-radius: var(--radius-lg); border: 1px solid var(--line); flex-wrap: wrap;">
+        <div style="position: relative;">
+          <div id="foto-perfil-grande" style="width: 100px; height: 100px; border-radius: 50%; background: var(--pale); display: grid; place-items: center; font-size: 40px; color: var(--green); overflow: hidden; border: 3px solid var(--line);">♡</div>
+          <button onclick="document.getElementById('upload-foto-perfil').click()" style="position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: white; border: none; cursor: pointer; font-size: 16px; display: grid; place-items: center;">✏</button>
+          <input type="file" id="upload-foto-perfil" accept="image/*" style="display: none;" onchange="alterarFotoPerfil(this)">
+        </div>
+        <div>
+          <h3 id="exibicao-nome-usuario" style="font-size: 24px; margin-bottom: 4px;">Seu Nome</h3>
+          <p id="exibicao-estilo-usuario" style="color: var(--muted); font-size: 14px;">Seu estilo preferido</p>
+        </div>
+      </div>
+      <div style="max-width: 420px;">
+        <label style="display: block; margin: 0 0 8px; font-weight: 600;">Seu Nome
+          <input id="config-nome" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 16px;" placeholder="Como quer ser chamado?">
+        </label>
+        <label style="display: block; margin: 24px 0 8px; font-weight: 600;">Estilo Preferido
+          <select id="config-estilo" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 16px;">
+            <option value="casual">👕 Casual</option>
+            <option value="elegante">👔 Elegante</option>
+            <option value="esportivo">🏃 Esportivo</option>
+            <option value="streetwear">✨ Streetwear</option>
+            <option value="classico">🎩 Clássico</option>
+            <option value="alternativo" selected>🎭 Alternativo</option>
+          </select>
+        </label>
+        <label style="display: block; margin: 24px 0 8px; font-weight: 600;">Tema da interface
+          <select id="tema-escolha" onchange="definirTema(this.value)" style="width: 100%; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 16px;">
+            <option value="claro">☀️ Tema Claro</option>
+            <option value="escuro" selected>🌙 Tema Escuro</option>
+          </select>
+        </label>
+        <button class="primary-btn" style="margin-top: 28px;" onclick="salvarConfiguracoes()">Salvar Alterações ✅</button>
+      </div>
+    </section>
+
+    <section class="content-section hidden" id="other-view">
+      <div class="section-heading"><div><p class="eyebrow" id="other-eyebrow"></p><h2 id="other-title"></h2></div></div>
+      <div id="other-content"></div>
+    </section>
+  </main>
+
+  <dialog id="perfil-dialog">
+    <form method="dialog">
+      <button type="button" class="dialog-close" onclick="fecharPerfil()">×</button>
+      <p class="eyebrow">SEU ESPAÇO</p>
+      <h2>Editar Perfil</h2>
+      <label>Seu Nome
+        <input id="modal-nome" placeholder="Como quer ser chamado?">
+      </label>
+      <label>Estilo Preferido
+        <select id="modal-estilo">
+          <option value="casual">Casual</option>
+          <option value="elegante">Elegante</option>
+          <option value="esportivo">Esportivo</option>
+          <option value="streetwear">Streetwear</option>
+          <option value="classico">Clássico</option>
+          <option value="alternativo">Alternativo</option>
+        </select>
+      </label>
+      <label>Tema
+        <select id="modal-tema" onchange="definirTema(this.value)">
+          <option value="claro">Claro ☀️</option>
+          <option value="escuro">Escuro 🌙</option>
+        </select>
+      </label>
+      <div class="form-row" style="margin-top: 24px;">
+        <button type="button" class="outline-btn" onclick="fecharPerfil()">Cancelar</button>
+        <button class="primary-btn" type="submit" onclick="salvarPerfil()">Salvar ✅</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="upload-dialog">
+    <form id="upload-form" method="dialog">
+      <button type="button" class="dialog-close" id="close-dialog">×</button>
+      <p class="eyebrow">NOVA PEÇA</p>
+      <h2>📷 Adicione ao seu closet</h2>
+      <p class="muted">Escolha como quer adicionar a peça:</p>
+
+      <label class="upload-zone" for="photo-input-camera">
+        <span>📸</span>
+        <b>Tirar foto agora</b>
+        <small>Abre a câmera direto</small>
+      </label>
+      <input id="photo-input-camera" type="file" accept="image/*" capture="environment" style="display: none;">
+
+      <label class="upload-zone" for="photo-input-gallery">
+        <span>🖼️</span>
+        <b>Escolher da galeria</b>
+        <small>Usar foto já salva</small>
+      </label>
+      <input id="photo-input-gallery" type="file" accept="image/*" style="display: none;">
+
+      <div id="preview-container" style="display: none; margin: 20px 0; text-align: center;">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">Prévia:</p>
+        <img id="image-preview" alt="Prévia da roupa" style="max-width: 200px; border-radius: 12px;">
+      </div>
+
+      <label>Nome da peça
+        <input id="piece-name" placeholder="Ex.: Camiseta estampada" required>
+      </label>
+      <div class="form-row">
+        <label>Categoria
+          <select id="piece-category">
+            <option>Blusas</option>
+            <option>Calças</option>
+            <option>Shorts</option>
+            <option>Bermudas</option>
+            <option>Vestidos</option>
+            <option>Casacos</option>
+            <option>Sapatos</option>
+            <option>Acessórios</option>
+          </select>
+        </label>
+        <label>Cor principal
+          <input id="piece-color" placeholder="Ex.: Preto">
+        </label>
+      </div>
+      <label>Estilo
+        <select id="piece-style">
+          <option>Casual</option>
+          <option>Elegante</option>
+          <option>Esportivo</option>
+          <option>Streetwear</option>
+          <option>Clássico</option>
+          <option>Alternativo</option>
+        </select>
+      </label>
+      <button class="primary-btn full" type="submit" id="btn-salvar" style="margin-top: 16px; display: none;">
+        Salvar peça no closet ✅
+      </button>
+      <p id="escolha-aviso" style="text-align: center; color: var(--muted); font-size: 13px; margin-top: 16px;">
+        ☝️ Escolha uma foto acima primeiro
+      </p>
+    </form>
+  </dialog>
+
+  <script>
+    let pecas = JSON.parse(localStorage.getItem('pecas_closet') || '[]');
+    let historico = JSON.parse(localStorage.getItem('historico_closet') || '[]');
+    let looksSalvos = JSON.parse(localStorage.getItem('looks_salvos') || '[]');
+    let favoritos = JSON.parse(localStorage.getItem('favoritos_closet') || '[]');
+    let perfil = JSON.parse(localStorage.getItem('perfil_closet') || '{"nome":"Nicolly","estilo":"alternativo","tema":"escuro","foto":""}');
+    let imagemEscolhida = null;
+    let filtroAtivo = 'Todas';
+
+    const estiloTexto = {
+      casual: '👕 Casual', elegante: '👔 Elegante', esportivo: '🏃 Esportivo',
+      streetwear: '✨ Streetwear', classico: '🎩 Clássico', alternativo: '🎭 Alternativo'
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarTema();
+      carregarPerfil();
+      renderizarPecas();
+      atualizarContadores();
+      configurarNavegacao();
+      configurarUpload();
+      configurarFiltros();
+    });
+
+    function carregarTema() {
+      const tema = localStorage.getItem('tema_closet') || perfil.tema || 'escuro';
+      document.body.setAttribute('data-tema', tema);
+      if (document.getElementById('tema-escolha')) document.getElementById('tema-escolha').value = tema;
+      if (document.getElementById('modal-tema')) document.getElementById('modal-tema').value = tema;
+    }
+
+    function definirTema(tipo) {
+      document.body.setAttribute('data-tema', tipo);
+      localStorage.setItem('tema_closet', tipo);
+      perfil.tema = tipo;
+      localStorage.setItem('perfil_closet', JSON.stringify(perfil));
+    }
+
+    function alterarFotoPerfil(input) {
+      if (!input.files.length) return;
+      const r = new FileReader();
+      r.onload = e => {
+        perfil.foto = e.target.result;
+        localStorage.setItem('perfil_closet', JSON.stringify(perfil));
+        renderizarFotoPerfil();
+      };
+      r.readAsDataURL(input.files[0]);
+    }
+
+    function renderizarFotoPerfil() {
+      ['foto-perfil-grande', 'avatar-perfil', 'top-avatar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = perfil.foto
+          ? `<img src="${perfil.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`
+          : '♡';
+      });
+    }
+
+    function carregarPerfil() {
+      const nome = perfil.nome || 'Seu espaço';
+      const estilo = estiloTexto[perfil.estilo] || 'Closet personalizado';
+
+      if (document.getElementById('nome-ola')) document.getElementById('nome-ola').textContent = nome;
+      if (document.getElementById('nome-perfil-exibicao')) document.getElementById('nome-perfil-exibicao').textContent = nome;
+      if (document.getElementById('estilo-perfil-exibicao')) document.getElementById('estilo-perfil-exibicao').textContent = estilo;
+      if (document.getElementById('top-nome')) document.getElementById('top-nome').textContent = nome;
+      if (document.getElementById('top-estilo')) document.getElementById('top-estilo').textContent = estilo;
+      if (document.getElementById('exibicao-nome-usuario')) document.getElementById('exibicao-nome-usuario').textContent = nome;
+      if (document.getElementById('exibicao-estilo-usuario')) document.getElementById('exibicao-estilo-usuario').textContent = estilo;
+      if (document.getElementById('config-nome')) document.getElementById('config-nome').value = nome;
+      if (document.getElementById('config-estilo')) document.getElementById('config-estilo').value = perfil.estilo || 'alternativo';
+      if (document.getElementById('tema-escolha')) document.getElementById('tema-escolha').value = perfil.tema || 'escuro';
+
+      renderizarFotoPerfil();
+    }
+
+    function abrirPerfil() {
+      document.getElementById('modal-nome').value = perfil.nome || '';
+      document.getElementById('modal-estilo').value = perfil.estilo || 'alternativo';
+      document.getElementById('modal-tema').value = perfil.tema || 'escuro';
+      document.getElementById('perfil-dialog').showModal();
+    }
+
+    function fecharPerfil() {
+      document.getElementById('perfil-dialog').close();
+    }
+
+    function salvarPerfil() {
+      perfil.nome = document.getElementById('modal-nome').value || 'Seu espaço';
+      perfil.estilo = document.getElementById('modal-estilo').value;
+      definirTema(document.getElementById('modal-tema').value);
+      localStorage.setItem('perfil_closet', JSON.stringify(perfil));
+      carregarPerfil();
+      fecharPerfil();
+      alert('✅ Perfil salvo!');
+    }
+
+    function salvarConfiguracoes() {
+      perfil.nome = document.getElementById('config-nome').value || 'Seu espaço';
+      perfil.estilo = document.getElementById('config-estilo').value;
+      definirTema(document.getElementById('tema-escolha').value);
+      localStorage.setItem('perfil_closet', JSON.stringify(perfil));
+      carregarPerfil();
+      alert('✅ Preferências salvas!');
+    }
+
+    function configurarNavegacao() {
+      document.querySelectorAll('[data-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          mostrarAba(btn.dataset.tab);
+        });
+      });
+    }
+
+    function mostrarAba(nome) {
+      document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+
+      if (nome === 'closet') {
+        document.getElementById('closet-view').classList.remove('hidden');
+        renderizarPecas();
+      } else if (nome === 'configuracoes') {
+        document.getElementById('configuracoes-view').classList.remove('hidden');
+      } else if (nome === 'ia') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'IA Stylist ✨';
+        document.getElementById('other-eyebrow').textContent = 'SUA STYLIST DIGITAL';
+
+        if (pecas.length === 0) {
+          document.getElementById('other-content').innerHTML = `
+            <div style="text-align:center;padding:3rem 1rem;">
+              <div style="font-size:48px;margin-bottom:1rem;">👗</div>
+              <h3>Adicione peças primeiro!</h3>
+              <p style="color:var(--muted);margin-bottom:1.5rem;">Preciso de peças para montar seus looks 💚</p>
+              <button class="primary-btn" onclick="document.querySelector('[data-tab=closet]').click();">Ir ao Closet →</button>
+            </div>`;
+        } else {
+          document.getElementById('other-content').innerHTML = `
+            <div style="max-width:520px;">
+              <p style="margin-bottom:1.5rem;color:var(--muted);">Tenho <strong>${pecas.length} peças</strong> no seu closet ✨</p>
+              <label>Onde você vai?
+                <select id="ia-ocasiao" style="width:100%;padding:14px;margin:8px 0 20px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:16px;">
+                  <option>Rolê casual</option><option>Encontro</option><option>Trabalho</option><option>Festa</option>
+                  <option>Escola</option><option>Academia</option><option>Almoço em família</option><option>Evento elegante</option>
+                </select>
+              </label>
+              <label>Como está o clima?
+                <select id="ia-clima" style="width:100%;padding:14px;margin:8px 0 20px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:16px;">
+                  <option>Ameno</option><option>Quente ☀️</option><option>Frio 🧥</option><option>Chuvoso 🌧️</option>
+                </select>
+              </label>
+              <label>Qual vibe?
+                <select id="ia-vibe" style="width:100%;padding:14px;margin:8px 0 20px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:16px;">
+                  <option>Confortável e estilosa</option><option>Discreta</option><option>Com tudo</option><option>Elegante</option>
+                  <option>Streetwear</option><option>Esportiva</option>
+                </select>
+              </label>
+              <button class="primary-btn" style="width:100%;" onclick="gerarLookIA()">✳ Montar meu look</button>
+              <div id="resultado-ia" style="margin-top:2rem;"></div>
+            </div>`;
+        }
+      } else if (nome === 'estilos') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'Estilos';
+        document.getElementById('other-eyebrow').textContent = 'SEU ESTILO';
+        document.getElementById('other-content').innerHTML = `
+          <div class="card-page">
+            <h3>🎭 Estilo Preferido: ${estiloTexto[perfil.estilo] || 'Personalizado'}</h3>
+            <p>Seu estilo define como você se veste e se sente. Você pode mudar a qualquer momento em Configurações.</p>
+          </div>
+          <div class="card-page">
+            <h3>Estilos disponíveis</h3>
+            <div style="margin-top:12px;">
+              <span class="tag">👕 Casual</span>
+              <span class="tag">👔 Elegante</span>
+              <span class="tag">🏃 Esportivo</span>
+              <span class="tag">✨ Streetwear</span>
+              <span class="tag">🎩 Clássico</span>
+              <span class="tag">🎭 Alternativo</span>
+            </div>
+          </div>
+          <div class="card-page">
+            <h3>Suas peças por estilo</h3>
+            <div class="lista-itens">
+              ${['Casual','Elegante','Esportivo','Streetwear','Clássico','Alternativo'].map(e => {
+                const qtd = pecas.filter(p => p.estilo === e).length;
+                return `<div class="item-tag"><h4>${e}</h4><p>${qtd} peça(s)</p></div>`;
+              }).join('')}
+            </div>
+          </div>`;
+      } else if (nome === 'cores') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'Cores';
+        document.getElementById('other-eyebrow').textContent = 'PALETA DE CORES';
+
+        const coresContagem = {};
+        pecas.forEach(p => {
+          const c = (p.cor || 'Não informada').trim();
+          coresContagem[c] = (coresContagem[c] || 0) + 1;
+        });
+        const coresOrdenadas = Object.entries(coresContagem).sort((a,b) => b[1] - a[1]);
+
+        document.getElementById('other-content').innerHTML = `
+          <div class="card-page">
+            <h3>🎨 Cores mais usadas</h3>
+            ${coresOrdenadas.length === 0 ? '<p style="color:var(--muted);">Adicione peças para ver suas cores aqui 💚</p>' : ''}
+            <div style="margin-top:12px;">
+              ${coresOrdenadas.map(([cor, qtd]) => `<span class="tag">${cor}: ${qtd}</span>`).join('')}
+            </div>
+          </div>
+          <div class="card-page">
+            <h3>Dica de combinações</h3>
+            <p>• Cores neutras (preto, branco, bege) combinam com tudo ✨</p>
+            <p>• Tons semelhantes criam harmonia suave</p>
+            <p>• Cores complementares dão destaque e energia</p>
+          </div>`;
+      } else if (nome === 'sapatos') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'Sapatos';
+        document.getElementById('other-eyebrow').textContent = 'SEUS CALÇADOS';
+
+        const sapatos = pecas.filter(p => p.categoria === 'Sapatos');
+
+        document.getElementById('other-content').innerHTML = `
+          <div class="card-page">
+            <h3>👟 ${sapatos.length} par(es) de calçados</h3>
+            ${sapatos.length === 0
+              ? '<p style="color:var(--muted);">Nenhum sapato ainda. Adicione suas peças! 💚</p>'
+              : `<div class="lista-itens">${sapatos.map(p => `<div class="item-tag"><img src="${p.imagem}" alt="${p.nome}"><h4>${p.nome}</h4><p>${p.cor}</p></div>`).join('')}</div>`
+            }
+          </div>`;
+      } else if (nome === 'acessorios') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'Acessórios';
+        document.getElementById('other-eyebrow').textContent = 'COMPLEMENTOS';
+
+        const acessorios = pecas.filter(p => p.categoria === 'Acessórios');
+
+        document.getElementById('other-content').innerHTML = `
+          <div class="card-page">
+            <h3>💍 ${acessorios.length} acessório(s)</h3>
+            ${acessorios.length === 0
+              ? '<p style="color:var(--muted);">Nenhum acessório ainda. Colares, brincos, bolsas... tudo conta! 💚</p>'
+              : `<div class="lista-itens">${acessorios.map(p => `<div class="item-tag"><img src="${p.imagem}" alt="${p.nome}"><h4>${p.nome}</h4><p>${p.cor}</p></div>`).join('')}</div>`
+            }
+          </div>`;
+      } else if (nome === 'pesquisa') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'Pesquisar';
+        document.getElementById('other-eyebrow').textContent = 'ENCONTRAR PEÇAS';
+
+        document.getElementById('other-content').innerHTML = `
+          <div class="card-page">
+            <label style="font-weight:600;">Buscar peça
+              <input type="text" id="campo-pesquisa" placeholder=""Ex.: nome, cor, categoria...", oninput="executarPesquisa(this.value)">
+              </label>
+              <div id="resultado-pesquisa" style="margin-top: 1rem;"></div>
+            </div>`;
+      } else if (nome === 'historico') {
+        document.getElementById('other-view').classList.remove('hidden');
+        document.getElementById('other-title').textContent = 'Histórico';
+        document.getElementById('other-eyebrow').textContent = 'SUA JORNADA';
+
+        document.getElementById('other-content').innerHTML = `
+          <div class="card-page">
+            <h3>📋 Registro de atividades</h3>
+            ${historico.length === 0
+              ? '<p style="color:var(--muted);">Nenhuma atividade ainda. Adicione peças e crie looks para ver seu histórico aqui 💚</p>'
+              : `<div style="margin-top: 12px;">${historico.map(item => `
+                  <div class="historico-item">
+                    <div class="historico-data">${item.data}</div>
+                    <div class="historico-acao">${item.acao}</div>
+                  </div>`).join('')}</div>`
+            }
+          </div>
+          <div class="card-page">
+            <h3>📊 Resumo</h3>
+            <p>• Total de peças: ${pecas.length}</p>
+            <p>• Looks salvos: ${looksSalvos.length}</p>
+            <p>• Favoritos: ${favoritos.length}</p>
+            <button class="outline-btn" style="margin-top: 12px;" onclick="limparHistorico()">🗑️ Limpar histórico</button>
+          </div>`;
+      }
+    }
+
+    function executarPesquisa(termo) {
+      const container = document.getElementById('resultado-pesquisa');
+      if (!termo.trim()) {
+        container.innerHTML = '<p style="color:var(--muted);">Digite algo para buscar...</p>';
+        return;
+      }
+      const t = termo.toLowerCase().trim();
+      const encontradas = pecas.filter(p =>
+        (p.nome && p.nome.toLowerCase().includes(t)) ||
+        (p.categoria && p.categoria.toLowerCase().includes(t)) ||
+        (p.cor && p.cor.toLowerCase().includes(t)) ||
+        (p.estilo && p.estilo.toLowerCase().includes(t))
+      );
+      if (encontradas.length === 0) {
+        container.innerHTML = '<p class="sem-resultado">Nenhuma peça encontrada com esses termos 😕</p>';
+        return;
+      }
+      container.innerHTML = `
+        <p style="margin-bottom: 12px; color:var(--muted);">${encontradas.length} peça(s) encontrada(s):</p>
+        <div class="piece-grid">
+          ${encontradas.map(p => criarCardPeca(p)).join('')}
+        </div>`;
+    }
+
+    function gerarLookIA() {
+      const ocasiao = document.getElementById('ia-ocasiao').value;
+      const clima = document.getElementById('ia-clima').value;
+      const vibe = document.getElementById('ia-vibe').value;
+
+      let superiores = pecas.filter(p => ['Blusas', 'Vestidos', 'Casacos'].includes(p.categoria));
+      let inferiores = pecas.filter(p => ['Calças', 'Shorts', 'Bermudas', 'Vestidos'].includes(p.categoria));
+      let calcados = pecas.filter(p => p.categoria === 'Sapatos');
+      let acess = pecas.filter(p => p.categoria === 'Acessórios');
+
+      if (clima === 'Quente ☀️') {
+        inferiores = inferiores.filter(p => !p.nome?.toLowerCase().includes('casaco') && !p.categoria.includes('Casacos'));
+      }
+      if (clima === 'Frio 🧥') {
+        superiores = superiores.filter(p => p.categoria === 'Casacos' || p.nome?.toLowerCase().includes('casaco') || p.nome?.toLowerCase().includes('jaqueta') || p.nome?.toLowerCase().includes('blusa'));
+      }
+
+      const pegarAleatorio = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+      const superior = pegarAleatorio(superiores);
+      const inferior = ocasiao.includes('Festa') || ocasiao.includes('Elegante')
+        ? (inferiores.find(p => p.categoria === 'Vestidos') || pegarAleatorio(inferiores))
+        : pegarAleatorio(inferiores.filter(p => p !== superior));
+      const calçado = pegarAleatorio(calcados);
+      const acessorio = vibe.includes('com tudo') || vibe.includes('Elegante') ? pegarAleatorio(acess) : null;
+
+      const pecasLook = [superior, inferior, calçado, acessorio].filter(Boolean);
+      if (pecasLook.length < 2) {
+        document.getElementById('resultado-ia').innerHTML = `
+          <p class="sem-resultado">Não tenho peças suficientes para montar um look com essas preferências 😅<br>Experimente adicionar mais peças ou mudar as opções.</p>`;
+        return;
+      }
+
+      const idLook = Date.now();
+      const look = {
+        id: idLook,
+        data: new Date().toLocaleDateString('pt-BR'),
+        ocasiao, clima, vibe,
+        pecas: pecasLook
+      };
+      looksSalvos.unshift(look);
+      localStorage.setItem('looks_salvos', JSON.stringify(looksSalvos));
+      historico.unshift({
+        data: new Date().toLocaleString('pt-BR'),
+        acao: `✨ Look gerado: ${ocasiao} — ${pecasLook.map(p => p.nome).join(' + ')}`
+      });
+      localStorage.setItem('historico_closet', JSON.stringify(historico));
+      atualizarContadores();
+
+      document.getElementById('resultado-ia').innerHTML = `
+        <div class="resultado-ia-card">
+          <h3 style="margin-bottom: 12px;">✨ Seu look está pronto!</h3>
+          <p style="font-size: 13px; color:var(--muted); margin-bottom: 8px;">${ocasiao} · ${clima} · ${vibe}</p>
+          <div class="look-pecas">
+            ${pecasLook.map(p => `
+              <div class="look-peca">
+                <img src="${p.imagem}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;">
+                <span>${p.nome}</span>
+              </div>`).join('')}
+          </div>
+          <div class="acao-botao">
+            <button class="primary-btn" onclick="salvarLookAtual(${idLook})">💾 Salvar look</button>
+            <button class="outline-btn" onclick="gerarLookIA()">🔄 Gerar outro</button>
+          </div>
+        </div>`;
+    }
+
+    function salvarLookAtual(id) {
+      alert('✅ Look salvo! Você pode vê-lo no Histórico.');
+    }
+
+    function limparHistorico() {
+      if (confirm('Tem certeza que quer apagar todo o histórico? Esta ação não pode ser desfeita.')) {
+        historico = [];
+        localStorage.setItem('historico_closet', '[]');
+        mostrarAba('historico');
+      }
+    }
+
+    function configurarFiltros() {
+      document.querySelectorAll('.filter').forEach(f => {
+        f.addEventListener('click', () => {
+          document.querySelectorAll('.filter').forEach(btn => btn.classList.remove('active'));
+          f.classList.add('active');
+          filtroAtivo = f.dataset.filter;
+          renderizarPecas();
+        });
+      });
+    }
+
+    function renderizarPecas() {
+      const grade = document.getElementById('piece-grid');
+      const vazio = document.getElementById('empty-state');
+      let filtradas = filtroAtivo === 'Todas'
+        ? pecas
+        : pecas.filter(p => p.categoria === filtroAtivo);
+
+      if (filtradas.length === 0) {
+        grade.innerHTML = '';
+        vazio.classList.add('active');
+        return;
+      }
+      vazio.classList.remove('active');
+      grade.innerHTML = filtradas.map(p => criarCardPeca(p)).join('');
+    }
+
+    function criarCardPeca(peca) {
+      const ehFavorito = favoritos.includes(peca.id);
+      return `
+        <div class="piece-card">
+          <div class="piece-photo"><img src="${peca.imagem}" alt="${peca.nome}"></div>
+          <div class="piece-info">
+            <b>${peca.nome}</b>
+            <small>${peca.categoria} · ${peca.cor || 'Sem cor'}</small>
+            <div class="piece-actions">
+              <button class="tiny-btn" onclick="alternarFavorito('${peca.id}')" title="Favorito">
+                ${ehFavorito ? '❤️' : '🤍'}
+              </button>
+              <button class="tiny-btn" onclick="excluirPeca('${peca.id}')" title="Excluir">🗑️</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function alternarFavorito(id) {
+      if (favoritos.includes(id)) {
+        favoritos = favoritos.filter(f => f !== id);
+      } else {
+        favoritos.push(id);
+      }
+      localStorage.setItem('favoritos_closet', JSON.stringify(favoritos));
+      atualizarContadores();
+      renderizarPecas();
+    }
+
+    function excluirPeca(id) {
+      if (!confirm('Excluir esta peça?')) return;
+      pecas = pecas.filter(p => p.id !== id);
+      favoritos = favoritos.filter(f => f !== id);
+      localStorage.setItem('pecas_closet', JSON.stringify(pecas));
+      localStorage.setItem('favoritos_closet', JSON.stringify(favoritos));
+      historico.unshift({
+        data: new Date().toLocaleString('pt-BR'),
+        acao: `🗑️ Peça removida do closet`
+      });
+      localStorage.setItem('historico_closet', JSON.stringify(historico));
+      atualizarContadores();
+      renderizarPecas();
+    }
+
+    function atualizarContadores() {
+      document.getElementById('piece-count').textContent = pecas.length;
+      document.getElementById('look-count').textContent = looksSalvos.length;
+      document.getElementById('favorite-count').textContent = favoritos.length;
+    }
+
+    function configurarUpload() {
+      const dialog = document.getElementById('upload-dialog');
+      const abrir = () => {
+        imagemEscolhida = null;
+        document.getElementById('preview-container').style.display = 'none';
+        document.getElementById('image-preview').src = '';
+        document.getElementById('piece-name').value = '';
+        document.getElementById('piece-color').value = '';
+        document.getElementById('piece-category').value = 'Blusas';
+        document.getElementById('piece-style').value = 'Casual';
+        document.getElementById('btn-salvar').style.display = 'none';
+        document.getElementById('escolha-aviso').style.display = 'block';
+        dialog.showModal();
+      };
+
+      document.getElementById('upload-trigger').addEventListener('click', abrir);
+      document.getElementById('empty-upload').addEventListener('click', abrir);
+      document.getElementById('close-dialog').addEventListener('click', () => dialog.close());
+
+      const processarArquivo = file => {
+        if (!file) return;
+        const leitor = new FileReader();
+        leitor.onload = e => {
+          imagemEscolhida = e.target.result;
+          document.getElementById('image-preview').src = imagemEscolhida;
+          document.getElementById('preview-container').style.display = 'block';
+          document.getElementById('btn-salvar').style.display = 'inline-flex';
+          document.getElementById('escolha-aviso').style.display = 'none';
+        };
+        leitor.readAsDataURL(file);
+      };
+
+      document.getElementById('photo-input-camera').addEventListener('change', e => {
+        processarArquivo(e.target.files[0]);
+      });
+      document.getElementById('photo-input-gallery').addEventListener('change', e => {
+        processarArquivo(e.target.files[0]);
+      });
+
+      document.getElementById('upload-form').addEventListener('submit', e => {
+        e.preventDefault();
+        if (!imagemEscolhida) return;
+
+        const novaPeca = {
+          id: Date.now().toString(),
+          nome: document.getElementById('piece-name').value.trim(),
+          categoria: document.getElementById('piece-category').value,
+          cor: document.getElementById('piece-color').value.trim() || 'Não informada',
+          estilo: document.getElementById('piece-style').value,
+          imagem: imagemEscolhida,
+          data: new Date().toLocaleDateString('pt-BR')
+        };
+
+        pecas.unshift(novaPeca);
+        localStorage.setItem('pecas_closet', JSON.stringify(pecas));
+        historico.unshift({
+          data: new Date().toLocaleString('pt-BR'),
+          acao: `📷 Peça adicionada: ${novaPeca.nome}`
+        });
+        localStorage.setItem('historico_closet', JSON.stringify(historico));
+
+        atualizarContadores();
+        renderizarPecas();
+        dialog.close();
+        alert('✅ Peça adicionada com sucesso!');
+      });
+    }
+  </script>
+</body>
+</html>
